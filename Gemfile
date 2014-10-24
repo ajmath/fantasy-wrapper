@@ -2,6 +2,7 @@ source "https://rubygems.org/"
 
 # App Stack
 gem "sinatra", "~> 1.4"
+gem "json", "~> 1.8"
 
 
 group :development do
