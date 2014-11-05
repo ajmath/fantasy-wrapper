@@ -25,12 +25,13 @@ class FFMatchups
         .select {|a| @gameIdRe.match a["href"]}
         .collect {|a| @gameIdRe.match(a["href"])[1]}.first
 
-      yield({
+      games << {
         :team1_id => team_1,
         :team2_id => team_2,
         :game_id => game
-      })
+      }
       i = i + 3
     end
+    games
   end
 end
