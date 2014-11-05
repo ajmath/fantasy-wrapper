@@ -33,7 +33,7 @@ describe FFCurrentMatchup do
     result[:team1][:players][4][:team].must_equal "IND"
     result[:team1][:players][4][:points].must_equal 21.5
     result[:team1][:players][5][:name].must_equal "D. Baldwin"
-    result[:team1][:players][5][:position].must_equal "WR/RB/TE"
+    result[:team1][:players][5][:position].must_equal "RB/WR.."
     result[:team1][:players][5][:team].must_equal "SEA"
     result[:team1][:players][5][:points].must_equal 6.1
     result[:team1][:players][6][:name].must_equal "M. Bennett"
@@ -51,7 +51,7 @@ describe FFCurrentMatchup do
 
     result[:team2].wont_be_nil
     result[:team2][:team_id].must_equal "1121906"
-    result[:team2][:team_name].must_equal "Hemingway squandered half his life hanging around Picasso, trying to nail his leftovers"
+    result[:team2][:team_name].must_equal "Hemingway squandered half his life hanging around Picasso, trying t..."
     result[:team2][:score].must_equal 150.46
     result[:team2][:players].length.must_equal 9
     result[:team2][:players][0][:name].must_equal "C. Palmer"
@@ -75,7 +75,7 @@ describe FFCurrentMatchup do
     result[:team2][:players][4][:team].must_equal "BUF"
     result[:team2][:players][4][:points].must_equal 21.7
     result[:team2][:players][5][:name].must_equal "E. Sanders"
-    result[:team2][:players][5][:position].must_equal "WR/RB/TE"
+    result[:team2][:players][5][:position].must_equal "RB/WR.."
     result[:team2][:players][5][:team].must_equal "DEN"
     result[:team2][:players][5][:points].must_equal 30.6
     result[:team2][:players][6][:name].must_equal "J. Witten"
