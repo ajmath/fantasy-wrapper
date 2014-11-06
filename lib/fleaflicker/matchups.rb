@@ -1,29 +1,29 @@
 require 'nokogiri'
 
-class FFMatchups
+class FFMatchups < FantasyQuery
 
-  @teamIdRe = /.*teamId=([0-9]*).*/
-  @gameIdRe = /.*fantasyGameId=([0-9]*).*/
+  TEAM_ID_RE = /.*teamId=([0-9]*).*/
+  GAME_ID_RE = /.*fantasyGameId=([0-9]*).*/
 
-  def self.get
-    self.parse nil
+  def get_url
+    "http://www.fleaflicker.com/nfl/league-schedule?leagueId=#{@league_id}"
   end
 
-  def self.parse html
+  def parse html
     html_doc = Nokogiri::HTML(html)
     cells = html_doc.xpath("//tr[contains(concat(' ',normalize-space(@class),' '),' cell-row ')]")
     i = 0
     games = []
     until i >= cells.length  do
       team_1 = cells[i].css("a")
-        .select {|a| @teamIdRe.match a["href"]}
-        .collect {|a| @teamIdRe.match(a["href"])[1]}.first
+        .select {|a| TEAM_ID_RE.match a["href"]}
+        .collect {|a| TEAM_ID_RE.match(a["href"])[1]}.first
       team_2 = cells[i + 1].css("a")
-        .select {|a| @teamIdRe.match a["href"]}
-        .collect {|a| @teamIdRe.match(a["href"])[1]}.first
+        .select {|a| TEAM_ID_RE.match a["href"]}
+        .collect {|a| TEAM_ID_RE.match(a["href"])[1]}.first
       game = cells[i + 2].css("a")
-        .select {|a| @gameIdRe.match a["href"]}
-        .collect {|a| @gameIdRe.match(a["href"])[1]}.first
+        .select {|a| GAME_ID_RE.match a["href"]}
+        .collect {|a| GAME_ID_RE.match(a["href"])[1]}.first
 
       games << {
         :team1_id => team_1,

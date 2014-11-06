@@ -5,7 +5,7 @@ describe FFCurrentMatchup do
   it "parses current correctly" do
     file = File.open(File.dirname(__FILE__) + "/current_matchup_test0.html", "rb")
 
-    result = FFCurrentMatchup::parse file.read
+    result = FFCurrentMatchup.new.parse file.read
 
     result[:team1].wont_be_nil
     result[:team1][:team_id].must_equal "1095147"

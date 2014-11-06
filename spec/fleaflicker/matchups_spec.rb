@@ -2,10 +2,16 @@ require_relative "../spec_helper"
 require_relative "../../lib/fleaflicker/teamlist.rb"
 
 describe FFMatchups do
+
+  it "builds correct url" do
+    url = FFMatchups.new("55443322").get_url
+    url.must_equal "http://www.fleaflicker.com/nfl/league-schedule?leagueId=55443322"
+  end
+
   it "parses matchups correctly" do
     file = File.open(File.dirname(__FILE__) + "/matchups_test0.html", "rb")
 
-    result = FFMatchups::parse file.read
+    result = FFMatchups.new.parse file.read
 
     result.size.must_equal 5
 

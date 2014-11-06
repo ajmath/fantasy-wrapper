@@ -37,6 +37,6 @@ class FantasyWrapper < Sinatra::Base
   get "/currentmatchup/ff" do
     $logger.info "league: #{params[:league]}, team: #{params[:team]}"
     content_type :json
-    FFCurrentMatchup::get.to_json
+    FFCurrentMatchup.new(params[:league], params[:team]).fetch
   end
 end

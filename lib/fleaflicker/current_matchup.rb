@@ -1,59 +1,104 @@
+require 'httparty'
+require 'json'
 
-class FFCurrentMatchup
+class FFCurrentMatchup < FantasyQuery
 
-  @teamIdRe = /.*teamId=([0-9]*).*/
-  @scoreRe = /[-]?[0-9]*\.?[0-9]*/
+  TEAM_ID_RE = /.*teamId=([0-9]*).*/
 
-  def self.get
-    self.parse nil
+  def get_url
+    matchups = FFMatchups.new(@league_id).get
+    $logger.info "getting matchup for team #{@team_id}"
+    game_id = matchups
+      .select { |m| m[:team1_id] == @team_id or m[:team2_id] == @team_id }
+      .collect { |m| m[:game_id] }
+      .first
+
+    if not game_id then
+      $logger.error "couldn't find a game for that team. "\
+        "I did find these though: #{matchups}"
+      nil
+    else
+      "http://www.fleaflicker.com/nfl/showMatchup.do"\
+        "?leagueId=#{@league_id}&fantasyGameId=#{game_id}&statType=0"
+    end
   end
 
-  def self.parse html
+  def parse html
     html_doc = Nokogiri::HTML(html)
     table0s = html_doc.xpath('//*[@id="table_0"]')
     scoreboard = table0s[0]
     team1 = table0s[1]
     team2 = html_doc.xpath('//*[@id="table_1"]')[0]
     {
-      :team1 => self.parse_team(0, scoreboard, team1),
-      :team2 => self.parse_team(1, scoreboard, team2),
+      :team1 => parse_team(0, scoreboard, team1),
+      :team2 => parse_team(1, scoreboard, team2)
     }
   end
 
-  def self.parse_team(team_idx, scoreboard_doc, team_doc)
+  def parse_team(team_idx, scoreboard_doc, team_doc)
     row = scoreboard_doc.css("tr")
       .select {|tr| tr["class"] != nil }
       .select {|tr| tr["class"].include? "scoreboard" }[team_idx]
-    name_node = row.css("a").select {|a| @teamIdRe.match a["href"]}.first
+    name_node = row.css("a").select {|a| TEAM_ID_RE.match a["href"]}.first
     {
-      :team_id => @teamIdRe.match(name_node["href"])[1],
+      :team_id => TEAM_ID_RE.match(name_node["href"])[1],
       :score => row.css("span").last.text.to_f,
-      :players => self.parse_players(team_doc),
+      :players => parse_players(team_doc),
       :team_name => name_node.text
     }
   end
 
-  def self.parse_players(team_doc)
+  def parse_players(team_doc)
     players = []
-    player_docs = team_doc.css("tr")
-      .select {|tr| tr["class"] != nil and tr["class"].include? "cell-row" }
-      .take_while { |tr| tr["class"] == "cell-row" }
+    player_docs = find_player_docs(team_doc)
     player_docs.each do |p_doc|
-      players << self.parse_player(p_doc)
+      players << parse_player(p_doc)
     end
     players
   end
 
-  def self.parse_player(p_doc)
+  def find_player_docs(team_doc)
+    all_players = team_doc.css("tr").select do |tr|
+      tr["class"] != nil and tr["class"].include? "cell-row"
+    end
+    #Get only starters
+    all_players.take_while { |tr| tr["class"] == "cell-row" }
+  end
+
+  def parse_player(p_doc)
     {
-      :name => p_doc.css("a")
-        .select { |a| a["href"].include? "playerId"}.first.text,
-      :points => p_doc.css("a")
-        .select { |a| a["href"].include? "fantasy-points"}.first.text.to_f,
-      :team => p_doc.css("span")
-        .select { |s| s["class"] == "player-team" }.first.text,
-      :position => p_doc.css("span")
-        .select { |s| s["class"] == "position" }.first.text
+      :name     => name( p_doc ),
+      :points   => points( p_doc ),
+      :team     => team( p_doc ),
+      :position => position( p_doc )
     }
+  end
+
+  def name p_doc
+    nodes = p_doc.css("a").select { |a| a["href"].include? "playerId"}
+    first_text_or_default(nodes, "??")
+  end
+
+  def points p_doc
+    nodes = p_doc.css("a").select { |a| a["href"].include? "fantasy-points"}
+    first_text_or_default(nodes, 0).to_f
+  end
+
+  def team p_doc
+    nodes = p_doc.css("span").select { |s| s["class"] == "player-team" }
+    first_text_or_default(nodes, "??")
+  end
+
+  def position p_doc
+    nodes = p_doc.css("span").select { |s| s["class"] == "position" }
+    first_text_or_default(nodes, "??")
+  end
+
+  def first_text_or_default(docs, default)
+    if docs.nil? or docs.length == 0
+      default
+    else
+      docs.first.text
+    end
   end
 end
