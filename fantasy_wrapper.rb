@@ -28,15 +28,16 @@ class FantasyWrapper < Sinatra::Base
 
   set :public_folder => "public", :static => true
 
-  # get "/teamlist/ff?" do
-  #   puts "league = #{params[:league]}"
-  #   content_type :json
-  #   FFTeamList::get.to_json
-  # end
+
+
 
   get "/currentmatchup/ff" do
     $logger.info "league: #{params[:league]}, team: #{params[:team]}"
     content_type :json
     FFCurrentMatchup.new(params[:league], params[:team]).fetch
+  end
+
+  get "/healthcheck" do
+    [200, "mmm bow bow, oh yeah"]
   end
 end
