@@ -7,6 +7,7 @@ gem "sinatra", "~> 1.4"
 gem "json", "~> 1.8"
 gem "nokogiri", "~> 1.6.3.1"
 gem "httparty", " ~> 0.13.2"
+gem 'unicorn', '~> 4.8.3'
 
 group :development do
   gem "rake", "~> 10.0"
