@@ -1,20 +1,41 @@
 require 'json'
+require 'logger'
 
 require_relative 'lib/fleaflicker/teamlist'
 require_relative 'lib/fleaflicker/current_matchup'
 
 class FantasyWrapper < Sinatra::Base
 
-  set :public_folder => "public", :static => true
+  configure :production do
+    set :haml, { :ugly=>true }
+    set :clean_trace, true
 
-  get "/teamlist/ff?" do
-    puts "league = #{params[:league]}"
-    content_type :json
-    FFTeamList::get.to_json
+    Dir.mkdir('logs') unless File.exist?('logs')
+
+    $logger = Logger.new('logs/common.log','weekly')
+    $logger.level = Logger::WARN
+
+    # Spit stdout and stderr to a file during production
+    # in case something goes wrong
+    $stdout.reopen("logs/output.log", "w")
+    $stdout.sync = true
+    $stderr.reopen($stdout)
   end
 
+  configure :development do
+    $logger = Logger.new(STDOUT)
+  end
+
+  set :public_folder => "public", :static => true
+
+  # get "/teamlist/ff?" do
+  #   puts "league = #{params[:league]}"
+  #   content_type :json
+  #   FFTeamList::get.to_json
+  # end
+
   get "/currentmatchup/ff" do
-    puts "league = #{params[:league]}, team = #{params[:team]}"
+    $logger.info "league: #{params[:league]}, team: #{params[:team]}"
     content_type :json
     FFCurrentMatchup::get.to_json
   end
